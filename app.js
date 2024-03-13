@@ -6,52 +6,9 @@ const port = 3000
 
 app.use(express.json())
 
-
-
 const CONNECTION_STRING = "mongodb+srv://alfito:xqoyTzOHqCCAcpv8@cluster0.wdpzzmg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 var db = null;
-/*
-MongoClient.connect(CONNECTION_STRING, function (err, db) {
-    if (err) {
-        console.log(err);
-    }
-    else {
-
-        console.log("Connected to db");
-
-        const db = client.db();
-
-
-        // Routes
-        app.get('/posts', async (req, res) => {
-            const posts = await db.collection('posts').find().toArray();
-            posts.forEach(element => {
-                console.log(element)
-            });
-            res.send(posts)
-        });
-
-        app.post('/posts', async function (req, res) {
-            const newPost = {
-                "commenter": req.body.commenter,
-                "comment": req.body.comment,
-                "created_at": req.body.created_at,
-                "post_id": req.body.post_id
-            }
-            const result = await db.collection("posts").insertOne(newPost);
-            res.send(result)
-        });
-
-        app.get('/', (req, res) => res.send('Hello World!'));
-
-        app.listen(port, () => console.log(`Example app listening on port ${port}!`));
-
-    }
-});
-
-*/
-
 
 //  POSTS
 app.get('/posts', async (req, res) => {
@@ -110,7 +67,56 @@ app.delete('/posts/delete/:id', async function (req, res) {
     }
 });
 
+//  SELECT ALL COMMENTS
+app.get('/comments', async (req, res) => {
+    const comments = await db.collection('comments').find().toArray();
 
+    comments.forEach(element => {
+        console.log(element)
+    });
+
+    res.send(comments)
+})
+
+//  POST ONE COMMENT
+app.post('/comments', async function (req, res) {
+
+    const newComment = {
+        "id": req.body.id,
+        "commenter": req.body.commenter,
+        "comment": req.body.comment,
+        "created_at": req.body.created_at,
+        "post_id": req.body.post_id,
+    }
+    const result = await db.collection("comments").insertOne(newComment);
+
+    res.send(result)
+})
+
+app.put('/comments/update', async function(req, res) {
+    try {
+        const empUpdate = db.collection('comments')
+        const result = await empUpdate.findOneAndUpdate(
+            { "post_nmb":parseInt(req.body.post_nmb) },
+            { $set: req.body },
+            { returnDocument: 'after', upsert: true }
+        )
+        res.send(result)
+    } catch (error) {
+        console.log(error)
+    }
+});
+
+app.delete('/comments/delete/:id', async function(req, res) {
+    try {
+        const result = await db.collection('comments').findOneAndDelete(
+            { "_id": new ObjectId(req.params.id) }
+        )
+        res.send((result) ? "Post deleted..." : "Post not found")
+    } catch (error) {
+        console.log(error)
+    }
+});
 
 app.get('/', (req, res) => res.send('Hello World!'))
 app.listen(port, async () => {
