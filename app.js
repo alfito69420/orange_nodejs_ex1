@@ -22,12 +22,21 @@ app.get('/posts', async (req, res) => {
     res.send(posts)
 })
 
+//  POST BY ONE
+app.get('/posts/id/:post_nmb', async (req, res) => {
+
+    const employees = await db.collection('posts')
+    .find({ "post_nmb": parseInt(req.params.post_nmb) }).toArray();
+
+    res.send(employees)
+})
 
 //  INSERT ONE POST
 app.post('/posts', async function (req, res) {
 
     const newPost = {
         "title": req.body.title,
+        "post_nmb": req.body.post_nmb,
         "author": req.body.author,
         "content": req.body.content,
         "image": req.body.image,
@@ -44,7 +53,7 @@ app.put('/posts/update', async function (req, res) {
     try {
         const empUpdate = db.collection('posts')
         const result = await empUpdate.findOneAndUpdate(
-            { "post_nmb":parseInt(req.body.post_nmb) },
+            { "post_nmb": parseInt(req.body.post_nmb) },
             { $set: req.body },
             { returnDocument: 'after', upsert: true }
         )
@@ -93,11 +102,11 @@ app.post('/comments', async function (req, res) {
     res.send(result)
 })
 
-app.put('/comments/update', async function(req, res) {
+app.put('/comments/update', async function (req, res) {
     try {
         const empUpdate = db.collection('comments')
         const result = await empUpdate.findOneAndUpdate(
-            { "post_nmb":parseInt(req.body.post_nmb) },
+            { "post_nmb": parseInt(req.body.post_nmb) },
             { $set: req.body },
             { returnDocument: 'after', upsert: true }
         )
@@ -107,7 +116,7 @@ app.put('/comments/update', async function(req, res) {
     }
 });
 
-app.delete('/comments/delete/:id', async function(req, res) {
+app.delete('/comments/delete/:id', async function (req, res) {
     try {
         const result = await db.collection('comments').findOneAndDelete(
             { "_id": new ObjectId(req.params.id) }
